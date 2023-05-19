@@ -8,12 +8,12 @@ let COLS = 10
 
 let defaultPosition = [{ row: Math.floor(Math.random() * ROWS), col: Math.floor(Math.random() * COLS) }]
 
-let navigate = ['w', 's', 'a', 'd']
+let navigate = ['up', 'down', 'left', 'right']
 
 const fruits = ['🍏', '🍎', '🍐', '🍊', '🍋', '🍌', '🍉', '🍇', '🍓', '🫐', '🍈', '🍒', '🍑', '🥭', '🍍', '🥥', '🥝']
 
 export default function App() {
-	const [board, setBoard] = useState(new Array(ROWS).fill(0).map(() => new Array(COLS).fill(0)))
+	const [board] = useState(new Array(ROWS).fill(0).map(() => new Array(COLS).fill(0)))
 
 	const [speed, setSpeed] = useState(500)
 	const [gameOver, setGameOver] = useState(false)
@@ -62,21 +62,17 @@ export default function App() {
 
 		// Switch head direction after turn
 		switch (navigate) {
-			case 'w':
+			case 'up':
 				head.row = head.row - 1
-				setDirection('w')
 				break
-			case 's':
+			case 'down':
 				head.row = head.row + 1
-				setDirection('s')
 				break
-			case 'a':
+			case 'left':
 				head.col = head.col - 1
-				setDirection('a')
 				break
-			case 'd':
+			case 'right':
 				head.col = head.col + 1
-				setDirection('d')
 				break
 			default:
 				break
@@ -129,23 +125,19 @@ export default function App() {
 
 	// Switch Diretion after click key
 	const switchDiretion = useCallback((keyDown) => {
-		let navigate = keyDown
-		switch (navigate) {
-			case 'w':
-				setDirection('w')
-				break
-			case 's':
-				setDirection('s')
-				break
-			case 'a':
-				setDirection('a')
-				break
-			case 'd':
-				setDirection('d')
-				break
-			default:
-				break
+		if (keyDown === 'w' || keyDown === 'ArrowUp') {
+			setDirection('up')
 		}
+		if (keyDown === 's' || keyDown === 'ArrowDown') {
+			setDirection('down')
+		}
+		if (keyDown === 'a' || keyDown === 'ArrowLeft') {
+			setDirection('left')
+		}
+		if (keyDown === 'd' || keyDown === 'ArrowRight') {
+			setDirection('right')
+		}
+		return
 	}, [])
 
 	// Auto move
@@ -163,6 +155,7 @@ export default function App() {
 	useEffect(() => {
 		function handleKeyPress(e) {
 			switchDiretion(e.key)
+			console.log(e.key)
 		}
 
 		document.addEventListener('keydown', handleKeyPress)
