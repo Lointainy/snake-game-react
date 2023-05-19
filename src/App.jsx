@@ -3,8 +3,10 @@ import { useCallback, useEffect, useState } from 'react'
 import style from './App.module.scss'
 
 /* Default */
-let ROWS = 10
-let COLS = 10
+let boardSizeList = [10, 15, 20]
+
+let ROWS = boardSizeList[0]
+let COLS = boardSizeList[0]
 
 let defaultPosition = [{ row: Math.floor(Math.random() * ROWS), col: Math.floor(Math.random() * COLS) }]
 
@@ -13,8 +15,23 @@ let navigate = ['up', 'down', 'left', 'right']
 const fruits = ['🍏', '🍎', '🍐', '🍊', '🍋', '🍌', '🍉', '🍇', '🍓', '🫐', '🍈', '🍒', '🍑', '🥭', '🍍', '🥥', '🥝']
 
 export default function App() {
-	const [board] = useState(new Array(ROWS).fill(0).map(() => new Array(COLS).fill(0)))
+	/* Board */
+	const [boardSize, setBoardSize] = useState({
+		rows: ROWS,
+		cols: COLS
+	})
+	const [board, setBoard] = useState()
 
+	/* Styles */
+	const rowsStyle = {
+		gridTemplateRows: `repeat(${boardSize.rows}, 30px)`
+	}
+
+	const colsStyle = {
+		gridTemplateColumns: `repeat(${boardSize.cols}, 30px)`
+	}
+
+	// Config
 	const [speed, setSpeed] = useState(500)
 	const [gameOver, setGameOver] = useState(false)
 
@@ -174,25 +191,48 @@ export default function App() {
 		}
 	}, [gameOver, setDefault])
 
-	return (
-		<div className={style.board}>
-			{board.map((row, rowIndex) => {
-				return (
-					<div className={style.row} key={rowIndex}>
-						{row.map((col, colIndex) => {
-							const isSnakeCell = snake.some((segment) => segment.row === rowIndex && segment.col === colIndex)
+	// Set board size after changes
+	useEffect(() => {
+		let { cols, rows } = boardSize
+		let newBoard = new Array(rows).fill(0).map(() => new Array(cols).fill(0))
+		setBoard(newBoard)
+	}, [boardSize])
 
-							const isFoodCell = food.row === rowIndex && food.col === colIndex
-							return (
-								<div key={colIndex} className={`${style.col} ${isSnakeCell ? style.snake : ''}`}>
-									{isFoodCell ? fruit : ''}
-								</div>
-							)
-						})}
-					</div>
+	// Set new board size after click button
+	const handleChangeBoardSize = (value) => {
+		setBoardSize({ cols: value, rows: value })
+		setGameOver(true)
+	}
+
+	return (
+		<>
+			{boardSizeList.map((size) => {
+				return (
+					<button onClick={() => handleChangeBoardSize(size)} key={size}>
+						{size}
+					</button>
 				)
 			})}
-		</div>
+
+			<div className={style.board} style={rowsStyle}>
+				{board?.map((row, rowIndex) => {
+					return (
+						<div className={style.row} key={rowIndex} style={colsStyle}>
+							{row.map((col, colIndex) => {
+								const isSnakeCell = snake.some((segment) => segment.row === rowIndex && segment.col === colIndex)
+
+								const isFoodCell = food.row === rowIndex && food.col === colIndex
+								return (
+									<div key={colIndex} className={`${style.col} ${isSnakeCell ? style.snake : ''}`}>
+										{isFoodCell ? fruit : ''}
+									</div>
+								)
+							})}
+						</div>
+					)
+				})}
+			</div>
+		</>
 	)
 }
 
