@@ -34,6 +34,8 @@ export default function App() {
 	// Config
 	const [speed, setSpeed] = useState(500)
 	const [gameOver, setGameOver] = useState(false)
+	const [results, setResults] = useState([])
+	const [currentResult, setCurrentResult] = useState('')
 
 	/* Random logic */
 	function randomCordinate() {
@@ -138,6 +140,7 @@ export default function App() {
 
 		// Set new body
 		setSnake(newSnake)
+		setCurrentResult(newSnake.length)
 	}, [direction, food, snake, speed, randomFruit])
 
 	// Switch Diretion after click key
@@ -159,6 +162,14 @@ export default function App() {
 		},
 		[direction]
 	)
+
+	// Update results, check with current, if max replace
+	const updateResults = useCallback(() => {
+		if (results.length === 0 || currentResult > Math.max(...results)) {
+			const updatedResults = [...results, currentResult].sort((a, b) => b - a).slice(0, 3)
+			setResults(updatedResults)
+		}
+	}, [results, currentResult])
 
 	// Auto move
 	useEffect(() => {
@@ -187,9 +198,10 @@ export default function App() {
 	// Watcher game end
 	useEffect(() => {
 		if (gameOver) {
+			updateResults()
 			setDefault()
 		}
-	}, [gameOver, setDefault])
+	}, [gameOver, setDefault, updateResults])
 
 	// Set board size after changes
 	useEffect(() => {
@@ -213,6 +225,13 @@ export default function App() {
 					</button>
 				)
 			})}
+			<h2>Current length: {currentResult}</h2>
+			<h4>Results:</h4>
+			<ul>
+				{results.map((result, index) => {
+					return <li key={index}>{result}</li>
+				})}
+			</ul>
 
 			<div className={style.board} style={rowsStyle}>
 				{board?.map((row, rowIndex) => {
