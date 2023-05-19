@@ -8,9 +8,11 @@ let boardSizeList = [10, 15, 20]
 let ROWS = boardSizeList[0]
 let COLS = boardSizeList[0]
 
-let defaultPosition = [{ row: Math.floor(Math.random() * ROWS), col: Math.floor(Math.random() * COLS) }]
+let bestResultsLength = 3
 
 let navigate = ['up', 'down', 'left', 'right']
+
+let defaultPosition = [{ row: Math.floor(Math.random() * ROWS), col: Math.floor(Math.random() * COLS) }]
 
 const fruits = ['🍏', '🍎', '🍐', '🍊', '🍋', '🍌', '🍉', '🍇', '🍓', '🫐', '🍈', '🍒', '🍑', '🥭', '🍍', '🥥', '🥝']
 
@@ -35,7 +37,7 @@ export default function App() {
 	const [speed, setSpeed] = useState(500)
 	const [gameOver, setGameOver] = useState(false)
 	const [results, setResults] = useState([])
-	const [currentResult, setCurrentResult] = useState('')
+	const [currentResult, setCurrentResult] = useState(1)
 
 	/* Random logic */
 	function randomCordinate() {
@@ -71,9 +73,10 @@ export default function App() {
 		setGameOver(false)
 		setDirection(randomDirection())
 		setSpeed(500)
+		setCurrentResult(1)
 	}, [randomDirection])
 
-	//Moved logic
+	// Moved logic
 	const moveSnake = useCallback(() => {
 		const head = { ...snake[0] }
 
@@ -143,7 +146,7 @@ export default function App() {
 		setCurrentResult(newSnake.length)
 	}, [direction, food, snake, speed, randomFruit])
 
-	// Switch Diretion after click key
+	// Switch diretion after click key
 	const switchDiretion = useCallback(
 		(keyDown) => {
 			if (keyDown === 'w' || keyDown === 'ArrowUp') {
@@ -165,10 +168,12 @@ export default function App() {
 
 	// Update results, check with current, if max replace
 	const updateResults = useCallback(() => {
-		if (results.length === 0 || currentResult > Math.max(...results)) {
-			const updatedResults = [...results, currentResult].sort((a, b) => b - a).slice(0, 3)
-			setResults(updatedResults)
-		}
+		let updatedResults = results
+		updatedResults = [...results, currentResult]
+			.filter((value, index, self) => self.indexOf(value) === index) // Remove duplicate results
+			.sort((a, b) => b - a)
+			.slice(0, bestResultsLength)
+		setResults(updatedResults)
 	}, [results, currentResult])
 
 	// Auto move
@@ -182,7 +187,7 @@ export default function App() {
 		}
 	}, [speed, moveSnake])
 
-	// Wathcer keydown
+	// Watcher keydown
 	useEffect(() => {
 		function handleKeyPress(e) {
 			switchDiretion(e.key)
@@ -195,7 +200,7 @@ export default function App() {
 		}
 	}, [snake, switchDiretion])
 
-	// Watcher game end
+	// Watcher if game end
 	useEffect(() => {
 		if (gameOver) {
 			updateResults()
