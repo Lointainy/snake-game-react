@@ -1,0 +1,20 @@
+.board {
+	display: grid;
+	grid-template-rows: repeat(10, 30px);
+}
+.row {
+	display: grid;
+	grid-template-columns: repeat(10, 30px);
+}
+
+.col {
+	background: #232733;
+	display: grid;
+	align-items: center;
+	justify-content: center;
+}
+
+.snake {
+	background: #60ffa8;
+}
+
