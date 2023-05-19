@@ -10,6 +10,10 @@ let COLS = boardSizeList[0]
 
 let bestResultsLength = 3
 
+let minSpeed = 500
+
+let maxSpeed = minSpeed * 0.1
+
 let navigate = ['up', 'down', 'left', 'right']
 
 let defaultPosition = [{ row: Math.floor(Math.random() * ROWS), col: Math.floor(Math.random() * COLS) }]
@@ -34,10 +38,18 @@ export default function App() {
 	}
 
 	// Config
-	const [speed, setSpeed] = useState(500)
+	const [speed, setSpeed] = useState(minSpeed)
 	const [gameOver, setGameOver] = useState(false)
 	const [results, setResults] = useState([])
 	const [currentResult, setCurrentResult] = useState(1)
+
+	// Cordinate
+	const [snake, setSnake] = useState([])
+	const [food, setFood] = useState({})
+	// Direction
+	const [direction, setDirection] = useState('')
+	// Fruit
+	const [fruit, setFruit] = useState('')
 
 	/* Random logic */
 	function randomCordinate() {
@@ -56,27 +68,21 @@ export default function App() {
 		return setRandomFromLength(navigate, navigate.length)
 	}, [])
 
-	// Cordinate
-	const [snake, setSnake] = useState(defaultPosition)
-	const [food, setFood] = useState(randomCordinate())
-
-	// Random head direction after start
-	const [direction, setDirection] = useState(randomDirection())
-
-	// Set random fruit from set
-	const [fruit, setFruit] = useState(randomFruit())
-
 	// Reset to default
 	const setDefault = useCallback(() => {
+		setSpeed(minSpeed)
+		setGameOver(false)
 		setSnake(defaultPosition)
 		setFood(randomCordinate())
-		setGameOver(false)
+		// Random head direction after start
 		setDirection(randomDirection())
-		setSpeed(500)
+		// Set random fruit from set
+		setFruit(randomFruit())
 		setCurrentResult(1)
-	}, [randomDirection])
+	}, [randomDirection, randomFruit])
 
 	// Moved logic
+	//FIXME
 	const moveSnake = useCallback(() => {
 		const head = { ...snake[0] }
 
@@ -134,7 +140,7 @@ export default function App() {
 		}
 
 		if (isClashFood(head)) {
-			const newSpeed = speed !== 50 ? speed - 50 : 50
+			const newSpeed = speed !== maxSpeed ? speed - maxSpeed : maxSpeed
 			setSpeed(newSpeed)
 			setFruit(randomFruit())
 			setNewFood()
@@ -146,6 +152,7 @@ export default function App() {
 		setCurrentResult(newSnake.length)
 	}, [direction, food, snake, speed, randomFruit])
 
+	//FIXME
 	// Switch diretion after click key
 	const switchDiretion = useCallback(
 		(keyDown) => {
@@ -213,7 +220,8 @@ export default function App() {
 		let { cols, rows } = boardSize
 		let newBoard = new Array(rows).fill(0).map(() => new Array(cols).fill(0))
 		setBoard(newBoard)
-	}, [boardSize])
+		setDefault()
+	}, [boardSize, setDefault])
 
 	// Set new board size after click button
 	const handleChangeBoardSize = (value) => {
@@ -223,6 +231,7 @@ export default function App() {
 
 	return (
 		<>
+			{speed}
 			{boardSizeList.map((size) => {
 				return (
 					<button onClick={() => handleChangeBoardSize(size)} key={size}>
