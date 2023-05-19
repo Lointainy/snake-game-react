@@ -124,21 +124,24 @@ export default function App() {
 	}, [direction, food, snake, speed, randomFruit])
 
 	// Switch Diretion after click key
-	const switchDiretion = useCallback((keyDown) => {
-		if (keyDown === 'w' || keyDown === 'ArrowUp') {
-			setDirection('up')
-		}
-		if (keyDown === 's' || keyDown === 'ArrowDown') {
-			setDirection('down')
-		}
-		if (keyDown === 'a' || keyDown === 'ArrowLeft') {
-			setDirection('left')
-		}
-		if (keyDown === 'd' || keyDown === 'ArrowRight') {
-			setDirection('right')
-		}
-		return
-	}, [])
+	const switchDiretion = useCallback(
+		(keyDown) => {
+			if (keyDown === 'w' || keyDown === 'ArrowUp') {
+				direction !== 'down' && setDirection('up')
+			}
+			if (keyDown === 's' || keyDown === 'ArrowDown') {
+				direction !== 'up' && setDirection('down')
+			}
+			if (keyDown === 'a' || keyDown === 'ArrowLeft') {
+				direction !== 'right' && setDirection('left')
+			}
+			if (keyDown === 'd' || keyDown === 'ArrowRight') {
+				direction !== 'left' && setDirection('right')
+			}
+			return
+		},
+		[direction]
+	)
 
 	// Auto move
 	useEffect(() => {
@@ -155,7 +158,6 @@ export default function App() {
 	useEffect(() => {
 		function handleKeyPress(e) {
 			switchDiretion(e.key)
-			console.log(e.key)
 		}
 
 		document.addEventListener('keydown', handleKeyPress)
