@@ -18,6 +18,7 @@ export default function App() {
 	const [speed, setSpeed] = useState(500)
 	const [gameOver, setGameOver] = useState(false)
 
+	/* Random logic */
 	function randomCordinate() {
 		return { row: Math.floor(Math.random() * ROWS), col: Math.floor(Math.random() * COLS) }
 	}
@@ -53,75 +54,101 @@ export default function App() {
 		setSpeed(500)
 	}, [randomDirection])
 
-	//Move head and body snake after click
-	const moveSnake = useCallback(
-		(keyDown) => {
-			const head = { ...snake[0] }
+	//Moved logic
+	const moveSnake = useCallback(() => {
+		const head = { ...snake[0] }
 
-			let navigate = keyDown ? keyDown : direction
+		let navigate = direction
 
-			switch (navigate) {
-				case 'w':
-					head.row = head.row - 1
-					setDirection('w')
-					break
-				case 's':
-					head.row = head.row + 1
-					setDirection('s')
-					break
-				case 'a':
-					head.col = head.col - 1
-					setDirection('a')
-					break
-				case 'd':
-					head.col = head.col + 1
-					setDirection('d')
-					break
-				default:
-					break
+		// Switch head direction after turn
+		switch (navigate) {
+			case 'w':
+				head.row = head.row - 1
+				setDirection('w')
+				break
+			case 's':
+				head.row = head.row + 1
+				setDirection('s')
+				break
+			case 'a':
+				head.col = head.col - 1
+				setDirection('a')
+				break
+			case 'd':
+				head.col = head.col + 1
+				setDirection('d')
+				break
+			default:
+				break
+		}
+
+		// New body snake
+		const newSnake = [head, ...snake.slice(0, -1)]
+
+		/* Checker logic */
+		const isClashWall = (head) => {
+			return head.row < 0 || head.col < 0 || head.row >= ROWS || head.col >= COLS
+		}
+
+		const isClashFood = (head) => {
+			return head.row === food.row && head.col === food.col
+		}
+
+		const isClashBody = (snake) => {
+			const [head, ...body] = snake
+			return body.some((segment) => segment.row === head.row && segment.col === head.col)
+		}
+
+		// Check food position dont spawn on snake body
+		function setNewFood() {
+			let newFood = randomCordinate()
+			while (snake.some((segment) => segment.row === newFood.row && segment.col === newFood.col)) {
+				newFood = randomCordinate()
 			}
+			setFood(newFood)
+		}
 
-			const newSnake = [head, ...snake.slice(0, -1)]
+		/* Checker */
 
-			const isClashWall = (head) => {
-				return head.row < 0 || head.col < 0 || head.row >= ROWS || head.col >= COLS
-			}
+		if (isClashWall(head) || isClashBody(newSnake)) {
+			setGameOver(true)
+			return
+		}
 
-			const isClashFood = (head) => {
-				return head.row === food.row && head.col === food.col
-			}
+		if (isClashFood(head)) {
+			const newSpeed = speed !== 50 ? speed - 50 : 50
+			setSpeed(newSpeed)
+			setFruit(randomFruit())
+			setNewFood()
+			newSnake.push({})
+		}
 
-			const isClashBody = (snake) => {
-				const [head, ...body] = snake
-				return body.some((segment) => segment.row === head.row && segment.col === head.col)
-			}
+		// Set new body
+		setSnake(newSnake)
+	}, [direction, food, snake, speed, randomFruit])
 
-			function setNewFood() {
-				let newFood = randomCordinate()
-				while (snake.some((segment) => segment.row === newFood.row && segment.col === newFood.col)) {
-					newFood = randomCordinate()
-				}
-				setFood(newFood)
-			}
+	// Switch Diretion after click key
+	const switchDiretion = useCallback((keyDown) => {
+		let navigate = keyDown
+		switch (navigate) {
+			case 'w':
+				setDirection('w')
+				break
+			case 's':
+				setDirection('s')
+				break
+			case 'a':
+				setDirection('a')
+				break
+			case 'd':
+				setDirection('d')
+				break
+			default:
+				break
+		}
+	}, [])
 
-			if (isClashWall(head) || isClashBody(newSnake)) {
-				setGameOver(true)
-				return
-			}
-
-			if (isClashFood(head)) {
-				const newSpeed = speed !== 50 ? speed - 50 : 50
-				setSpeed(newSpeed)
-				setFruit(randomFruit())
-				setNewFood()
-				newSnake.push({})
-			}
-
-			setSnake(newSnake)
-		},
-		[direction, food, snake, speed, randomFruit]
-	)
-
+	// Auto move
 	useEffect(() => {
 		const interval = setInterval(() => {
 			moveSnake()
@@ -132,9 +159,10 @@ export default function App() {
 		}
 	}, [speed, moveSnake])
 
+	// Wathcer keydown
 	useEffect(() => {
 		function handleKeyPress(e) {
-			moveSnake(e.key)
+			switchDiretion(e.key)
 		}
 
 		document.addEventListener('keydown', handleKeyPress)
@@ -142,8 +170,9 @@ export default function App() {
 		return () => {
 			document.removeEventListener('keydown', handleKeyPress)
 		}
-	}, [snake, moveSnake])
+	}, [snake, switchDiretion])
 
+	// Watcher game end
 	useEffect(() => {
 		if (gameOver) {
 			setDefault()
